@@ -18,15 +18,44 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureText = true;
 
   final _formKey = GlobalKey<FormState>();
-  TextEditingController email = TextEditingController();
+  TextEditingController username = TextEditingController();
   TextEditingController conpassword = TextEditingController();
+  TextEditingController email = TextEditingController();
+  var countryId;
+  String? gender;
 
-  Future<void> register(String email, conpassword) async {
+  List<String> genders = ["Male", "Female", "Not Preferred"];
+  String? isSelected = 'Male';
+  List countries = [];
+  @override
+  void initState() {
+    super.initState();
+    getAllCountries();
+  }
+
+  Future<void> getAllCountries() async {
+    http.Response response = await http
+        .get(Uri.parse('https://localhost:44360/api/Country'), headers: {
+      "Content-Type": "application/json",
+      "accept": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    });
+    if (response.statusCode == 200) {
+      countries = jsonDecode(response.body);
+    } else {
+      print("error");
+    }
+  }
+
+  Future<void> register(username, conpassword, email, gender, countryid) async {
     Map data = {
-      'userName': email,
+      'userName': username,
       'password': conpassword,
+      'email': email,
+      'gender': gender,
+      'countryId': countryid,
     };
-    // print(data);
+    print(data);
 
     String body = json.encode(data);
     var url = Uri.parse('https://localhost:44360/api/Auth/register');
@@ -39,8 +68,8 @@ class _RegisterPageState extends State<RegisterPage> {
         "Access-Control-Allow-Origin": "*"
       },
     );
-    // print(response.body);
-    // print(response.statusCode);
+    print(response.body);
+    print(response.statusCode);
     if (response.statusCode == 200) {
       // var jsonResponse = json.decode(response.body.toString());
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -51,8 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
       //Or put here your next screen using Navigator.push() method
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.teal,
-          content: Text("Invalid Email and Password")));
+          backgroundColor: Colors.teal, content: Text("Not Register")));
     }
   }
 
@@ -89,6 +117,26 @@ class _RegisterPageState extends State<RegisterPage> {
                 )),
                 Padding(
                   padding: const EdgeInsets.only(left: 15, top: 30),
+                  child: createtext("Username"),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 15, right: 15),
+                  child: TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please Enter Your Username';
+                      }
+                      return null;
+                    },
+                    controller: username,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: buildInputDecoration(
+                        "Enter Your Username", Icons.verified_user_rounded),
+                  ),
+                ),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.only(left: 15, top: 30),
                   child: createtext("Email"),
                 ),
                 Padding(
@@ -96,10 +144,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: TextFormField(
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please Enter Valid Email Address';
+                        return 'Please Enter Your Valid Email Address';
                       }
                       return null;
                     },
+                    // validator: (value) {
+                    // return validateEmail("Enter Your Email");
+                    //   return null;
+                    // },
                     controller: email,
                     keyboardType: TextInputType.emailAddress,
                     decoration:
@@ -111,28 +163,61 @@ class _RegisterPageState extends State<RegisterPage> {
                     padding: const EdgeInsets.only(left: 15, top: 15),
                     child: createtext("Gender")),
                 Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Row(
-                    children: [
-                      addradiobutton(0, "Male"),
-                      addradiobutton(1, "Female"),
-                      addradiobutton(2, "Not Prefered"),
-                    ],
+                  padding: const EdgeInsets.all(20),
+                  child: DropdownButtonFormField(
+                    decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(width: 2, color: Colors.teal))),
+                    value: isSelected,
+                    items: genders
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        gender = val as String?;
+                      });
+                    },
                   ),
                 ),
                 Divider(),
                 Padding(
                     padding: const EdgeInsets.only(left: 15, top: 15),
                     child: createtext("Country")),
+                // Padding(
+                //     padding: const EdgeInsets.only(left: 15, right: 15),
+                //     child: TextFormField(
+                //       validator: (value) {
+                //         return value!.isEmpty ? "Enter Country Name" : null;
+                //       },
+                //       controller: country,
+                //       decoration: buildInputDecoration(
+                //           "Country Name", Icons.location_city),
+                //     )),
                 Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 15),
-                    child: TextFormField(
-                      validator: (value) {
-                        return value!.isEmpty ? "Enter Country Name" : null;
-                      },
-                      decoration: buildInputDecoration(
-                          "Country Name", Icons.location_city),
-                    )),
+                  padding: const EdgeInsets.all(20),
+                  child: DropdownButtonFormField(
+                    decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(width: 2, color: Colors.teal))),
+                    value: countryId,
+                    hint: Text("Select Country"),
+                    items: countries
+                        .map((e) => DropdownMenuItem(
+                            value: e['countryId'],
+                            child: Text(e['countryName'])))
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        countryId = val;
+                        print(val);
+                      });
+                    },
+                  ),
+                ),
                 Divider(),
                 Padding(
                     padding: const EdgeInsets.all(20),
@@ -141,10 +226,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     padding: const EdgeInsets.only(left: 15, right: 15),
                     child: TextFormField(
                         validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              value.length < 6) {
-                            return 'Please Enter Valid Email Address';
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter a password';
+                          } else if (value.length < 6) {
+                            return "Maximum 6 digit password";
                           }
                           return null;
                         },
@@ -179,7 +264,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           //   const SnackBar(
                           //       content: Text('Registration Successfully')),
                           // );
-                          register(email.text, conpassword.text);
+                          register(username.text, conpassword.text, email.text,
+                              gender, countryId);
                         }
                       },
                       child: Container(
@@ -216,25 +302,6 @@ class _RegisterPageState extends State<RegisterPage> {
           TextSpan(text: "*", style: TextStyle(color: Colors.red))
         ],
       ),
-    );
-  }
-
-  List gender = ["Male", "Female", "Others"];
-  String? select;
-  Row addradiobutton(int btn_value, String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Radio<String>(
-            value: gender[btn_value],
-            groupValue: select,
-            onChanged: (value) {
-              setState(() {
-                select = value as String;
-              });
-            }),
-        Text(title),
-      ],
     );
   }
 }
