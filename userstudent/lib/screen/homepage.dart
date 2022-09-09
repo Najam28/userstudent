@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:userstudent/screen/login.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -43,10 +44,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> logout() async {
+    http.Response response =
+        await http.get(Uri.parse("https://localhost:44360/api/Auth/logout"));
+    if (response.statusCode == 200) {
+      // ScaffoldMessenger.of(context)
+      //     .showSnackBar(SnackBar(content: Text("LogOut Succesfully")));
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => LoginPage()));
+    } else {
+      throw Exception("Error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: [
+      FutureBuilder(builder: ((context, snapshot) {
+        return Text(
+            snapshot.hasData ? snapshot.data.toString() : "Loading....");
+      })),
       ListView.builder(
           itemCount: data.length,
           itemBuilder: (context, index) {
@@ -59,17 +77,14 @@ class _HomePageState extends State<HomePage> {
                     value: data[index]['userName'].toString()),
               ],
             );
-            // return Table(
-            //   children: [
-            //     TableRow(children: [Text("User ID"), Text("User Name")])
-            //   ],
-            // );
           }),
       Positioned(
-        left: 1100,
+        left: 10,
         bottom: 550,
         child: TextButton(
-          onPressed: (() {}),
+          onPressed: (() {
+            logout();
+          }),
           child: Container(
               height: 60,
               width: 200,
@@ -86,6 +101,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// ignore: must_be_immutable
 class ReusbaleRow extends StatelessWidget {
   String title, value;
   ReusbaleRow({Key? key, required this.title, required this.value})
@@ -105,12 +121,6 @@ class ReusbaleRow extends StatelessWidget {
             ],
           ),
         ),
-        // Container(
-        //     height: 60,
-        //     width: 400,
-        //     decoration:
-        //         BoxDecoration(borderRadius: BorderRadius.circular(15)),
-        //     child: GestureDetector(child: Text("Logout")))
       ],
     );
   }

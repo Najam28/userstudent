@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:html';
 
 import 'package:flutter/material.dart';
+import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
+
+import 'package:http/http.dart' as http;
 import 'package:userstudent/screen/homepage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,8 +19,10 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
 
   final _formKey = GlobalKey<FormState>();
+
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
+
   Future<void> userlogin() async {
     if (username.text.isNotEmpty && password.text.isNotEmpty) {
       makeLoginRequest(username.text, password.text);
@@ -31,30 +37,53 @@ class _LoginPageState extends State<LoginPage> {
 
   makeLoginRequest(username, password) async {
     final uri = Uri.parse('https://localhost:44360/api/Auth/login');
-    final headers = {'Content-Type': 'application/json'};
+    final headers = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Credentials': "true",
+      'Access-Control-Allow-Origin': '*'
+    };
     Map<String, dynamic> body = {'UserName': username, 'Password': password};
     String jsonBody = json.encode(body);
+
     final encoding = Encoding.getByName('utf-8');
 
-    Response response = await post(
+    await post(
       uri,
       headers: headers,
       body: jsonBody,
       encoding: encoding,
-    );
+    ).then((http.Response response) {
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.contentLength}");
+      print(response.headers);
+      print(response.request);
+      final cookies = response.headers['set-cookie'];
+      getTestString();
+      print(cookies);
+    });
 
-    int statusCode = response.statusCode;
-    if (statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.teal, content: Text("Login Successfully")));
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => HomePage()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Please Enter Invalid Username and Password")));
-    }
-    String responseBody = response.body;
-    print(responseBody);
+    // int statusCode = response.statusCode;
+    // if (statusCode == 200) {
+    //   var cookie = response.headers['refreshToken'];
+    //   print(cookie);
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //       backgroundColor: Colors.teal, content: Text("Login Successfully")));
+    //   Navigator.of(context)
+    //       .push(MaterialPageRoute(builder: (context) => HomePage()));
+    // } else {
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //       content: Text("Please Enter Invalid Username and Password")));
+    // }
+    // String responseBody = response.body;
+    // print(responseBody);
+  }
+
+  final http.Client _client = http.Client();
+  Future<String> getTestString() async {
+    if (_client is BrowserClient)
+      (_client as BrowserClient).withCredentials = true;
+    await _client.post(Uri.parse("https://localhost:44360/api/Auth/login"));
+    return 'Cookies Generated';
   }
 
   @override
@@ -132,6 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                       //   const SnackBar(content: Text('Login Successfully')),
                       // );
                       userlogin();
+                      // requestCookie(username.text, password.text);
                     }
                   },
                   child: Container(
@@ -169,3 +199,27 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+
+// Map<String, String> headers = {};
+
+  // Future<Map> get(String url) async {
+  //   http.Response response = await http.get(url, headers: headers);
+  //   updateCookie(response);
+  //   return json.decode(response.body);
+  // }
+
+  // Future<Map> post(String url, dynamic data) async {
+  //   http.Response response = await http.post(url, body: data, headers: headers);
+  //   updateCookie(response);
+  //   return json.decode(response.body);
+  // }
+
+  // void updateCookie(http.Response response) {
+  //   String rawCookie = response.headers['set-cookie'] as String;
+  //   if (rawCookie != null) {
+  //     int index = rawCookie.indexOf(';');
+  //     headers['cookie'] =
+  //         (index == -1) ? rawCookie : rawCookie.substring(0, index);
+  //   }
+  // }  
