@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -45,8 +46,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> logout() async {
-    http.Response response =
-        await http.get(Uri.parse("https://localhost:44360/api/Auth/logout"));
+    http.Response response = await http.get(
+      Uri.parse("https://localhost:44360/api/Auth/logout"),
+    );
     if (response.statusCode == 200) {
       // ScaffoldMessenger.of(context)
       //     .showSnackBar(SnackBar(content: Text("LogOut Succesfully")));
@@ -61,10 +63,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(children: [
-      FutureBuilder(builder: ((context, snapshot) {
-        return Text(
-            snapshot.hasData ? snapshot.data.toString() : "Loading....");
-      })),
+      // FutureBuilder(builder: ((context, snapshot) {
+      //   return Text(
+      //       snapshot.hasData ? snapshot.data.toString() : "Loading....");
+      // })),
       ListView.builder(
           itemCount: data.length,
           itemBuilder: (context, index) {

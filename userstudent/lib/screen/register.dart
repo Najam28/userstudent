@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:userstudent/screen/login.dart';
 
 import '../utils/validator.dart';
@@ -25,8 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
   String? gender;
 
   List<String> genders = ["Male", "Female", "Not Preferred"];
-  String? isSelected = 'Male';
+  String? isSelected;
   List countries = [];
+  String? refToken;
   @override
   void initState() {
     super.initState();
@@ -71,12 +73,14 @@ class _RegisterPageState extends State<RegisterPage> {
     print(response.body);
     print(response.statusCode);
     if (response.statusCode == 200) {
+      // String jsonBody = json.encode(response.body);
       // var jsonResponse = json.decode(response.body.toString());
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.teal,
           content: Text("Registration Successfully")));
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (context) => LoginPage()));
+      // print(jsonBody);
       //Or put here your next screen using Navigator.push() method
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -171,6 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderSide:
                                 BorderSide(width: 2, color: Colors.teal))),
                     value: isSelected,
+                    hint: Text("Select Gender"),
                     items: genders
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),

@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:html';
+import 'dart:core';
 
 import 'package:flutter/material.dart';
-import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:userstudent/screen/homepage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,16 +22,35 @@ class _LoginPageState extends State<LoginPage> {
 
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
+  String? refToken;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> setToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("refreshToken", refToken!);
+  }
+
+  // Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+
+  // Future<void> getToken() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   prefs.getString('refreshToken');
+  //   print(prefs.getString('refreshToken'));
+  // }
 
   Future<void> userlogin() async {
     if (username.text.isNotEmpty && password.text.isNotEmpty) {
       makeLoginRequest(username.text, password.text);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.teal, content: Text("Login Successfully")));
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     backgroundColor: Colors.teal, content: Text("Login Successfully")));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.teal,
-          content: Text("Enter Valid Username and Password")));
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     backgroundColor: Colors.teal,
+      //     content: Text("Enter Valid Username and Password")));
     }
   }
 
@@ -42,48 +61,35 @@ class _LoginPageState extends State<LoginPage> {
       'Access-Control-Allow-Credentials': "true",
       'Access-Control-Allow-Origin': '*'
     };
-    Map<String, dynamic> body = {'UserName': username, 'Password': password};
-    String jsonBody = json.encode(body);
+    Map<String, dynamic> body = {
+      'UserName': username,
+      'Password': password,
+    };
 
     final encoding = Encoding.getByName('utf-8');
-
-    await post(
+    http.Response response = await post(
       uri,
       headers: headers,
-      body: jsonBody,
+      body: json.encode(body),
       encoding: encoding,
-    ).then((http.Response response) {
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.contentLength}");
-      print(response.headers);
-      print(response.request);
-      final cookies = response.headers['set-cookie'];
-      getTestString();
-      print(cookies);
-    });
+    );
 
-    // int statusCode = response.statusCode;
-    // if (statusCode == 200) {
-    //   var cookie = response.headers['refreshToken'];
-    //   print(cookie);
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //       backgroundColor: Colors.teal, content: Text("Login Successfully")));
-    //   Navigator.of(context)
-    //       .push(MaterialPageRoute(builder: (context) => HomePage()));
-    // } else {
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //       content: Text("Please Enter Invalid Username and Password")));
-    // }
-    // String responseBody = response.body;
-    // print(responseBody);
-  }
-
-  final http.Client _client = http.Client();
-  Future<String> getTestString() async {
-    if (_client is BrowserClient)
-      (_client as BrowserClient).withCredentials = true;
-    await _client.post(Uri.parse("https://localhost:44360/api/Auth/login"));
-    return 'Cookies Generated';
+    int statusCode = response.statusCode;
+    if (statusCode == 200) {
+      String jsonBody = json.encode(response.body);
+      // print(username);
+      // print(response.body[6]);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.teal, content: Text("Login Successfully")));
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => HomePage()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Please Enter Invalid Username and Password")));
+    }
+    var item = json.decode(response.body);
+    refToken = item['refreshToken'];
+    setToken();
   }
 
   @override
@@ -186,6 +192,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+// ElevatedButton(
+//                       style: ElevatedButton.styleFrom(
+//                           backgroundColor: Color(0xffb9C1746),
+//                           shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(20),
+//                           ), padding: EdgeInsets.all(20)),
+//                       onPressed: () {},
+//                       child: Text("Login"),
+//                     )),
   RichText createtext(String richtext) {
     return RichText(
       text: TextSpan(
