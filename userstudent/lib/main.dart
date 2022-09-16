@@ -27,9 +27,10 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () async {
+    Future.delayed(Duration(seconds: 3), () async {
       String token = await getToken();
-      if (token.isNotEmpty) {
+
+      if (token == "null") {
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => LoginPage()));
       } else {
@@ -41,6 +42,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(
+      child: Center(child: Text("Old is Gold")),
+    );
   }
 }

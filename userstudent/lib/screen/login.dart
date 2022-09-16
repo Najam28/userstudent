@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
   }
 
-  Future<void> setToken() async {
+  Future<void> setToken(String reftoken) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString("refreshToken", refToken!);
   }
@@ -79,17 +79,18 @@ class _LoginPageState extends State<LoginPage> {
       String jsonBody = json.encode(response.body);
       // print(username);
       // print(response.body[6]);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.teal, content: Text("Login Successfully")));
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     backgroundColor: Colors.teal, content: Text("Login Successfully")));
+      var item = json.decode(response.body);
+      refToken = item['refreshToken'];
+      print(refToken);
+      setToken(refToken!);
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (context) => HomePage()));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Please Enter Invalid Username and Password")));
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     content: Text("Please Enter Invalid Username and Password")));
     }
-    var item = json.decode(response.body);
-    refToken = item['refreshToken'];
-    setToken();
   }
 
   @override

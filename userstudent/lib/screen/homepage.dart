@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:userstudent/screen/login.dart';
 
 class HomePage extends StatefulWidget {
@@ -46,17 +46,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> logout() async {
-    http.Response response = await http.get(
-      Uri.parse("https://localhost:44360/api/Auth/logout"),
-    );
-    if (response.statusCode == 200) {
-      // ScaffoldMessenger.of(context)
-      //     .showSnackBar(SnackBar(content: Text("LogOut Succesfully")));
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => LoginPage()));
-    } else {
-      throw Exception("Error");
-    }
+    final pref = await SharedPreferences.getInstance();
+    await pref.clear();
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => LoginPage()));
+    // http.Response response = await http.get(
+    //   Uri.parse("https://localhost:44360/api/Auth/logout"),
+    // );
+    // if (response.statusCode == 200) {
+    //   // ScaffoldMessenger.of(context)
+    //   //     .showSnackBar(SnackBar(content: Text("LogOut Succesfully")));
+    //   Navigator.of(context)
+    //       .push(MaterialPageRoute(builder: (context) => LoginPage()));
+    // } else {
+    //   throw Exception("Error");
+    // }
   }
 
   @override
